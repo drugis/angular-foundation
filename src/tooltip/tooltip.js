@@ -132,6 +132,11 @@ angular.module( 'mm.foundation.tooltip', [ 'mm.foundation.position', 'mm.foundat
               ttWidth = tooltip.prop( 'offsetWidth' );
               ttHeight = tooltip.prop( 'offsetHeight' );
 
+              var scrollTop = $window.pageYOffset;
+              if(scope.tt_placement === 'top' && (position.top - scrollTop - ttHeight - 20) < 0) {
+                scope.tt_placement = 'bottom';
+              }
+
               // Calculate the tooltip's top and left coordinates to center it with
               // this directive.
               switch ( scope.tt_placement ) {
