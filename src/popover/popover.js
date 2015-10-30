@@ -9,7 +9,7 @@ angular.module( 'mm.foundation.popover', [ 'mm.foundation.tooltip' ] )
   return {
     restrict: 'EA',
     replace: true,
-    scope: { title: '@', content: '@', placement: '@', animation: '&', isOpen: '&' },
+    scope: { title: '@', content: '@', link: '@', placement: '@', animation: '&', isOpen: '&' },
     templateUrl: 'template/popover/popover.html'
   };
 })

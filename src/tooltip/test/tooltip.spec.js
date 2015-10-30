@@ -51,7 +51,7 @@ describe('tooltip', function() {
 
   it('should have default placement of "top"', inject(function() {
     elm.trigger( 'mouseenter' );
-    expect( elmScope.tt_placement ).toBe( "top" );
+    expect( elmScope.tt_placement ).toBe( "bottom" ); // it flips to stay within the viewport
   }));
 
   it('should allow specification of placement', inject( function( $compile ) {
@@ -110,7 +110,7 @@ describe('tooltip', function() {
     expect( elm.attr( 'alt' ) ).toBe( scope.alt );
 
     ttScope = angular.element( elmBody.children()[1] ).isolateScope();
-    expect( ttScope.placement ).toBe( 'top' );
+    expect( ttScope.placement ).toBe( 'bottom' ); // it flips to stay within the viewport 
     expect( ttScope.content ).toBe( scope.tooltipMsg );
 
     elm.trigger( 'mouseleave' );
@@ -119,7 +119,7 @@ describe('tooltip', function() {
     elm.trigger( 'mouseenter' );
 
     ttScope = angular.element( elmBody.children()[1] ).isolateScope();
-    expect( ttScope.placement ).toBe( 'top' );
+    expect( ttScope.placement ).toBe( 'bottom' ); // it flips to stay within the viewport 
     expect( ttScope.content ).toBe( scope.tooltipMsg );
   }));
 

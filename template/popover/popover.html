@@ -1,4 +1,4 @@
-<div class="joyride-tip-guide" ng-class="{ in: isOpen(), fade: animation() }">
+<div class="joyride-tip-guide" ng-class="{ in: isOpen(), fade: animation() }" style="margin-left: -1.2rem;">
   <span class="joyride-nub" ng-class="{
     bottom: placement === 'top',
     left: placement === 'right',
@@ -8,5 +8,6 @@
   <div class="joyride-content-wrapper">
     <h4 ng-bind="title" ng-show="title"></h4>
     <p ng-bind="content"></p>
+    <a ng-href="{{link}}" target="_blank">View in manual <i class="fa fa-external-link"></i></a>
   </div>
 </div>

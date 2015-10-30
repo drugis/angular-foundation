@@ -92,13 +92,14 @@ angular.module( 'mm.foundation.tooltip', [ 'mm.foundation.position', 'mm.foundat
       }
 
       var directiveName = snake_case( type );
-
+      var tooltipHider;
       var startSym = $interpolate.startSymbol();
       var endSym = $interpolate.endSymbol();
       var template = 
         '<div '+ directiveName +'-popup '+
           'title="'+startSym+'tt_title'+endSym+'" '+
           'content="'+startSym+'tt_content'+endSym+'" '+
+          'link="'+startSym+'tt_link'+endSym+'" '+
           'placement="'+startSym+'tt_placement'+endSym+'" '+
           'animation="tt_animation" '+
           'is-open="tt_isOpen"'+
@@ -171,7 +172,6 @@ angular.module( 'mm.foundation.tooltip', [ 'mm.foundation.position', 'mm.foundat
 
               // Now set the calculated positioning.
               tooltip.css( ttPosition );
-
             };
 
             // By default, the tooltip is not open.
@@ -208,6 +208,10 @@ angular.module( 'mm.foundation.tooltip', [ 'mm.foundation.position', 'mm.foundat
             // Show the tooltip popup element.
             function show() {
 
+              if(tooltipHider) {
+                tooltipHider();
+              }
+
 
               // Don't show empty tooltips.
               if ( ! scope.tt_content ) {
@@ -239,13 +243,41 @@ angular.module( 'mm.foundation.tooltip', [ 'mm.foundation.position', 'mm.foundat
               scope.tt_isOpen = true;
               scope.$digest(); // digest required as $apply is not called
 
+              function isPositionOutsideBoundingBox(x, y, boundingBox) {
+                return x < boundingBox.left || 
+                   x > boundingBox.right || 
+                   y < boundingBox.top ||
+                   y > boundingBox.bottom;
+              } 
+
+         
+
+              $document.on('click', function(event) {
+                // workaround so that this does not trigger for the initial popup creation click event
+                if(!tooltip.isDoneCreating) {
+                  tooltip.isDoneCreating = true;
+                  return false;
+                }
+                var boundingBox = {
+                  top: tooltip.prop('offsetTop'),
+                  left:tooltip.prop('offsetLeft'), 
+                  right: tooltip.prop('offsetLeft') + tooltip.prop('offsetWidth'),
+                  bottom: tooltip.prop('offsetTop') + tooltip.prop('offsetHeight')
+                };
+                if(isPositionOutsideBoundingBox(event.x, event.y, boundingBox)) {
+                  hide();
+                }
+              });
               // Return positioning function as promise callback for correct
               // positioning after draw.
+              tooltipHider = hide;
               return positionTooltip;
             }
 
             // Hide the tooltip popup element.
             function hide() {
+              // remove click handler
+              $document.off('click');
               // First things first: we don't show it anymore.
               scope.tt_isOpen = false;
 
@@ -256,7 +288,7 @@ angular.module( 'mm.foundation.tooltip', [ 'mm.foundation.position', 'mm.foundat
               // need to wait for it to expire beforehand.
               // FIXME: this is a placeholder for a port of the transitions library.
               if ( scope.tt_animation ) {
-                transitionTimeout = $timeout(removeTooltip, 500);
+                transitionTimeout = $timeout(removeTooltip, 200);
               } else {
                 removeTooltip();
               }
@@ -293,6 +325,10 @@ angular.module( 'mm.foundation.tooltip', [ 'mm.foundation.position', 'mm.foundat
 
             attrs.$observe( prefix+'Title', function ( val ) {
               scope.tt_title = val;
+            });
+
+            attrs.$observe( prefix+'Link', function ( val ) {
+              scope.tt_link = val;
             });
 
             attrs[prefix+'Placement'] = attrs[prefix+'Placement'] || null;
