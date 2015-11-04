@@ -2,7 +2,7 @@
  * angular-mm-foundation
  * http://pineconellc.github.io/angular-foundation/
 
- * Version: 0.9.0-SNAPSHOT - 2015-10-30
+ * Version: 0.9.0-SNAPSHOT - 2015-11-04
  * License: MIT
  * (c) Pinecone, LLC
  */
@@ -1877,7 +1877,7 @@ angular.module( 'mm.foundation.tooltip', [ 'mm.foundation.position', 'mm.foundat
                   right: tooltip.prop('offsetLeft') + tooltip.prop('offsetWidth'),
                   bottom: tooltip.prop('offsetTop') + tooltip.prop('offsetHeight')
                 };
-                if(isPositionOutsideBoundingBox(event.clientX, event.clientY, boundingBox)) {
+                if(isPositionOutsideBoundingBox(event.pageX, event.pageY, boundingBox)) {
                   hide();
                 }
               });

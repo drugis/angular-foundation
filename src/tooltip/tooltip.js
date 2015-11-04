@@ -264,7 +264,7 @@ angular.module( 'mm.foundation.tooltip', [ 'mm.foundation.position', 'mm.foundat
                   right: tooltip.prop('offsetLeft') + tooltip.prop('offsetWidth'),
                   bottom: tooltip.prop('offsetTop') + tooltip.prop('offsetHeight')
                 };
-                if(isPositionOutsideBoundingBox(event.clientX, event.clientY, boundingBox)) {
+                if(isPositionOutsideBoundingBox(event.pageX, event.pageY, boundingBox)) {
                   hide();
                 }
               });
