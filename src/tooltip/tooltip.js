@@ -26,7 +26,7 @@ angular.module( 'mm.foundation.tooltip', [ 'mm.foundation.position', 'mm.foundat
 
   // The options specified to the provider globally.
   var globalOptions = {};
-  
+
   /**
    * `options({})` allows global configuration of all tooltips in the
    * application.
@@ -95,7 +95,7 @@ angular.module( 'mm.foundation.tooltip', [ 'mm.foundation.position', 'mm.foundat
       var tooltipHider;
       var startSym = $interpolate.startSymbol();
       var endSym = $interpolate.endSymbol();
-      var template = 
+      var template =
         '<div '+ directiveName +'-popup '+
           'title="'+startSym+'tt_title'+endSym+'" '+
           'content="'+startSym+'tt_content'+endSym+'" '+
@@ -229,7 +229,7 @@ angular.module( 'mm.foundation.tooltip', [ 'mm.foundation.position', 'mm.foundat
               // Set the initial positioning.
               tooltip.css({ top: 0, left: 0, display: 'block' });
 
-              // Now we add it to the DOM because need some info about it. But it's not 
+              // Now we add it to the DOM because need some info about it. But it's not
               // visible yet anyway.
               if ( appendToBody ) {
                   $document.find( 'body' ).append( tooltip );
@@ -244,23 +244,23 @@ angular.module( 'mm.foundation.tooltip', [ 'mm.foundation.position', 'mm.foundat
               scope.$digest(); // digest required as $apply is not called
 
               function isPositionOutsideBoundingBox(x, y, boundingBox) {
-                return x < boundingBox.left || 
-                   x > boundingBox.right || 
+                return x < boundingBox.left ||
+                   x > boundingBox.right ||
                    y < boundingBox.top ||
                    y > boundingBox.bottom;
-              } 
+              }
 
-         
+
 
               $document.on('click', function(event) {
                 // workaround so that this does not trigger for the initial popup creation click event
-                if(!tooltip.isDoneCreating) {
+                if(tooltip && !tooltip.isDoneCreating) {
                   tooltip.isDoneCreating = true;
                   return false;
                 }
                 var boundingBox = {
                   top: tooltip.prop('offsetTop'),
-                  left:tooltip.prop('offsetLeft'), 
+                  left:tooltip.prop('offsetLeft'),
                   right: tooltip.prop('offsetLeft') + tooltip.prop('offsetWidth'),
                   bottom: tooltip.prop('offsetTop') + tooltip.prop('offsetHeight')
                 };
@@ -284,7 +284,7 @@ angular.module( 'mm.foundation.tooltip', [ 'mm.foundation.position', 'mm.foundat
               //if tooltip is going to be shown after delay, we must cancel this
               $timeout.cancel( popupTimeout );
 
-              // And now we remove it from the DOM. However, if we have animation, we 
+              // And now we remove it from the DOM. However, if we have animation, we
               // need to wait for it to expire beforehand.
               // FIXME: this is a placeholder for a port of the transitions library.
               if ( scope.tt_animation ) {
