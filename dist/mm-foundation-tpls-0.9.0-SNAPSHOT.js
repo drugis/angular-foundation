@@ -2,7 +2,7 @@
  * angular-mm-foundation
  * http://pineconellc.github.io/angular-foundation/
 
- * Version: 0.9.0-SNAPSHOT - 2015-11-04
+ * Version: 0.9.0-SNAPSHOT - 2017-07-25
  * License: MIT
  * (c) Pinecone, LLC
  */
@@ -404,105 +404,129 @@ angular.module("mm.foundation.mediaQueries", [])
      </li>
    </ul>
  */
-angular.module('mm.foundation.dropdownToggle', [ 'mm.foundation.position', 'mm.foundation.mediaQueries' ])
 
-.controller('DropdownToggleController', ['$scope', '$attrs', 'mediaQueries', function($scope, $attrs, mediaQueries) {
-  this.small = function() {
-    return mediaQueries.small() && !mediaQueries.medium();
-  };
-}])
+'use strict';
+angular.module('mm.foundation.dropdownToggle', ['mm.foundation.position', 'mm.foundation.mediaQueries'])
 
-.directive('dropdownToggle', ['$document', '$window', '$location', '$position', function ($document, $window, $location, $position) {
-  var openElement = null,
-      closeMenu   = angular.noop;
-  return {
-    restrict: 'CA',
-    controller: 'DropdownToggleController',
-    link: function(scope, element, attrs, controller) {
-      var parent = element.parent(),
+  .controller('DropdownToggleController', ['$scope', '$attrs', 'mediaQueries', function($scope, $attrs, mediaQueries) {
+    this.small = function() {
+      return mediaQueries.small() && !mediaQueries.medium();
+    };
+  }])
+
+  .directive('dropdownToggle', ['$document', '$window', '$location', '$position', function($document, $window, $location, $position) {
+    var openElement = null,
+      clickHandler = angular.noop,
+      closeMenu = angular.noop,
+      closeEventListenerRemover;
+    return {
+      restrict: 'CA',
+      controller: 'DropdownToggleController',
+      link: function(scope, element, attrs, controller) {
+        var parent = element.parent(),
           dropdown = angular.element($document[0].querySelector(attrs.dropdownToggle));
+        var parentHasDropdown = function() {
+          return parent.hasClass('has-dropdown');
+        };
 
-      var parentHasDropdown = function() {
-        return parent.hasClass('has-dropdown');
-      };
-
-      var onClick = function (event) {
-        dropdown = angular.element($document[0].querySelector(attrs.dropdownToggle));
-        var elementWasOpen = (element === openElement);
-
-        event.preventDefault();
-        event.stopPropagation();
-
-        if (!!openElement) {
-          closeMenu();
+        function isPositionOutsideBoundingBox(x, y, boundingBox) {
+          if (x === 0 && y === 0) {
+            return false; // workaround for chrome bug with dropdown click coordinates
+          }
+          return x < boundingBox.left ||
+            x > boundingBox.right ||
+            y < boundingBox.top ||
+            y > boundingBox.bottom;
         }
 
-        if (!elementWasOpen && !element.hasClass('disabled') && !element.prop('disabled')) {
-          dropdown.css('display', 'block'); // We display the element so that offsetParent is populated
-          dropdown.addClass('f-open-dropdown');
-          
-          var offset = $position.offset(element);
-          var parentOffset = $position.offset(angular.element(dropdown[0].offsetParent));
-          var dropdownWidth = dropdown.prop('offsetWidth');
-          var css = {
-            top: offset.top - parentOffset.top + offset.height + 'px'
-          };
+        function createBoundingBox(element) {
+          return element.getBoundingClientRect();
+        }
 
-          if (controller.small()) {
-            css.left = Math.max((parentOffset.width - dropdownWidth) / 2, 8) + 'px';
-            css.position = 'absolute';
-            css.width = '95%';
-            css['max-width'] = 'none';
+        var onClick = function(event) {
+          dropdown = angular.element($document[0].querySelector(attrs.dropdownToggle));
+          var elementWasOpen = (element === openElement);
+
+          event.preventDefault();
+          event.stopPropagation();
+
+          if (!!openElement) {
+            closeMenu();
           }
-          else {
-            var left = Math.round(offset.left - parentOffset.left);
-            var rightThreshold = $window.innerWidth - dropdownWidth - 8;
-            if (left > rightThreshold) {
+
+          if (!elementWasOpen && !element.hasClass('disabled') && !element.prop('disabled')) {
+            dropdown.css('display', 'block'); // We display the element so that offsetParent is populated
+            dropdown.addClass('f-open-dropdown');
+
+            var offset = $position.offset(element);
+            var parentOffset = $position.offset(angular.element(dropdown[0].offsetParent));
+            var dropdownWidth = dropdown.prop('offsetWidth');
+            var css = {
+              top: offset.top - parentOffset.top + offset.height + 'px'
+            };
+
+            if (controller.small()) {
+              css.left = Math.max((parentOffset.width - dropdownWidth) / 2, 8) + 'px';
+              css.position = 'absolute';
+              css.width = '95%';
+              css['max-width'] = 'none';
+            } else {
+              var left = Math.round(offset.left - parentOffset.left);
+              var rightThreshold = $window.innerWidth - dropdownWidth - 8;
+              if (left > rightThreshold) {
                 left = rightThreshold;
                 dropdown.removeClass('left').addClass('right');
+              }
+              css.left = left + 'px';
+              css.position = null;
+              css['max-width'] = null;
             }
-            css.left = left + 'px';
-            css.position = null;
-            css['max-width'] = null;
-          }
+            dropdown.css(css);
+            element.addClass('expanded');
 
-          dropdown.css(css);
-          element.addClass('expanded');
+            if (parentHasDropdown()) {
+              parent.addClass('hover');
+              openElement = element;
 
-          if (parentHasDropdown()) {
-            parent.addClass('hover');
-          }
-
-          openElement = element;
-
-          closeMenu = function (event) {
-            $document.off('click', closeMenu);
-            dropdown.css('display', 'none');
-            dropdown.removeClass('f-open-dropdown');
-            element.removeClass('expanded');
-            closeMenu = angular.noop;
-            openElement = null;
-            if (parent.hasClass('hover')) {
-              parent.removeClass('hover');
+              clickHandler = function(event) {
+                var boundingBox = createBoundingBox(dropdown[0]);
+                if (isPositionOutsideBoundingBox(event.clientX, event.clientY, boundingBox)) {
+                  scope.$emit('dropdown.hasClosed');
+                  closeMenu();
+                }
+              };
+              closeMenu = function() {
+                $document.off('click', clickHandler);
+                dropdown.css('display', 'none');
+                dropdown.removeClass('f-open-dropdown');
+                element.removeClass('expanded');
+                clickHandler = angular.noop;
+                closeEventListenerRemover();
+                openElement = null;
+                if (parent.hasClass('hover')) {
+                  parent.removeClass('hover');
+                }
+              };
+              scope.hideDropDown = clickHandler;
+              $document.on('click', clickHandler);
+              closeEventListenerRemover = scope.$on('dropdown.closeEvent', closeMenu);
             }
-          };
-          $document.on('click', closeMenu);
+          }
+        };
+
+        if (dropdown) {
+          dropdown.css('display', 'none');
         }
-      };
 
-      if (dropdown) {
-        dropdown.css('display', 'none');
+        scope.$watch('$location.path', function() { closeMenu(); });
+
+        element.on('click', onClick);
+        element.on('$destroy', function() {
+          element.off('click', onClick);
+        });
       }
-
-      scope.$watch('$location.path', function() { closeMenu(); });
-
-      element.on('click', onClick);
-      element.on('$destroy', function() {
-        element.off('click', onClick);
-      });
-    }
-  };
-}]);
+    };
+  }]);
 
 /**
  * @ngdoc service
@@ -1639,7 +1663,7 @@ angular.module( 'mm.foundation.tooltip', [ 'mm.foundation.position', 'mm.foundat
 
   // The options specified to the provider globally.
   var globalOptions = {};
-  
+
   /**
    * `options({})` allows global configuration of all tooltips in the
    * application.
@@ -1708,7 +1732,7 @@ angular.module( 'mm.foundation.tooltip', [ 'mm.foundation.position', 'mm.foundat
       var tooltipHider;
       var startSym = $interpolate.startSymbol();
       var endSym = $interpolate.endSymbol();
-      var template = 
+      var template =
         '<div '+ directiveName +'-popup '+
           'title="'+startSym+'tt_title'+endSym+'" '+
           'content="'+startSym+'tt_content'+endSym+'" '+
@@ -1842,7 +1866,7 @@ angular.module( 'mm.foundation.tooltip', [ 'mm.foundation.position', 'mm.foundat
               // Set the initial positioning.
               tooltip.css({ top: 0, left: 0, display: 'block' });
 
-              // Now we add it to the DOM because need some info about it. But it's not 
+              // Now we add it to the DOM because need some info about it. But it's not
               // visible yet anyway.
               if ( appendToBody ) {
                   $document.find( 'body' ).append( tooltip );
@@ -1857,23 +1881,23 @@ angular.module( 'mm.foundation.tooltip', [ 'mm.foundation.position', 'mm.foundat
               scope.$digest(); // digest required as $apply is not called
 
               function isPositionOutsideBoundingBox(x, y, boundingBox) {
-                return x < boundingBox.left || 
-                   x > boundingBox.right || 
+                return x < boundingBox.left ||
+                   x > boundingBox.right ||
                    y < boundingBox.top ||
                    y > boundingBox.bottom;
-              } 
+              }
 
-         
+
 
               $document.on('click', function(event) {
                 // workaround so that this does not trigger for the initial popup creation click event
-                if(!tooltip.isDoneCreating) {
+                if(tooltip && !tooltip.isDoneCreating) {
                   tooltip.isDoneCreating = true;
                   return false;
                 }
                 var boundingBox = {
                   top: tooltip.prop('offsetTop'),
-                  left:tooltip.prop('offsetLeft'), 
+                  left:tooltip.prop('offsetLeft'),
                   right: tooltip.prop('offsetLeft') + tooltip.prop('offsetWidth'),
                   bottom: tooltip.prop('offsetTop') + tooltip.prop('offsetHeight')
                 };
@@ -1897,7 +1921,7 @@ angular.module( 'mm.foundation.tooltip', [ 'mm.foundation.position', 'mm.foundat
               //if tooltip is going to be shown after delay, we must cancel this
               $timeout.cancel( popupTimeout );
 
-              // And now we remove it from the DOM. However, if we have animation, we 
+              // And now we remove it from the DOM. However, if we have animation, we
               // need to wait for it to expire beforehand.
               // FIXME: this is a placeholder for a port of the transitions library.
               if ( scope.tt_animation ) {
@@ -2798,8 +2822,8 @@ angular.module("mm.foundation.topbar", ['mm.foundation.mediaQueries'])
         angular.element($window).bind('scroll', onScroll);
 
         scope.$on('$destroy', function() {
-          angular.element($window).unbind('scroll', onResize);
-          angular.element($window).unbind('resize', onScroll);
+          angular.element($window).unbind('resize', onResize);
+          angular.element($window).unbind('scroll', onScroll);
         });
 
         if (topbarContainer.hasClass('fixed')) {
@@ -3157,6 +3181,8 @@ angular.module('mm.foundation.typeahead', ['mm.foundation.position', 'mm.foundat
 
       var appendToBody =  attrs.typeaheadAppendToBody ? $parse(attrs.typeaheadAppendToBody) : false;
 
+      var focusFirst = originalScope.$eval(attrs.typeaheadFocusFirst) !== false;
+
       //INTERNAL VARIABLES
 
       //model setter executed upon match selection
@@ -3204,7 +3230,7 @@ angular.module('mm.foundation.typeahead', ['mm.foundation.position', 'mm.foundat
           if (inputValue === modelCtrl.$viewValue && hasFocus) {
             if (matches.length > 0) {
 
-              scope.activeIdx = 0;
+              scope.activeIdx = focusFirst ? 0 : -1;
               scope.matches.length = 0;
 
               //transform labels
@@ -3329,6 +3355,11 @@ angular.module('mm.foundation.typeahead', ['mm.foundation.position', 'mm.foundat
           return;
         }
 
+        // if there's nothing selected (i.e. focusFirst) and enter is hit, don't do anything
+        if (scope.activeIdx == -1 && (evt.which === 13 || evt.which === 9)) {
+          return;
+        }
+
         evt.preventDefault();
 
         if (evt.which === 40) {
@@ -3336,7 +3367,7 @@ angular.module('mm.foundation.typeahead', ['mm.foundation.position', 'mm.foundat
           scope.$digest();
 
         } else if (evt.which === 38) {
-          scope.activeIdx = (scope.activeIdx ? scope.activeIdx : scope.matches.length) - 1;
+          scope.activeIdx = (scope.activeIdx > 0 ? scope.activeIdx : scope.matches.length) - 1;
           scope.$digest();
 
         } else if (evt.which === 13 || evt.which === 9) {
