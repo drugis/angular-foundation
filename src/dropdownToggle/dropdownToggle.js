@@ -31,9 +31,7 @@ angular.module('mm.foundation.dropdownToggle', ['mm.foundation.position', 'mm.fo
       link: function(scope, element, attrs, controller) {
         var parent = element.parent(),
           dropdown = angular.element($document[0].querySelector(attrs.dropdownToggle));
-        var parentHasDropdown = function() {
-          return parent.hasClass('has-dropdown');
-        };
+
 
         function isPositionOutsideBoundingBox(x, y, boundingBox) {
           if (x === 0 && y === 0) {
@@ -90,7 +88,6 @@ angular.module('mm.foundation.dropdownToggle', ['mm.foundation.position', 'mm.fo
             dropdown.css(css);
             element.addClass('expanded');
 
-            if (parentHasDropdown()) {
               parent.addClass('hover');
               openElement = element;
 
@@ -116,7 +113,6 @@ angular.module('mm.foundation.dropdownToggle', ['mm.foundation.position', 'mm.fo
               scope.hideDropDown = clickHandler;
               $document.on('click', clickHandler);
               closeEventListenerRemover = scope.$on('dropdown.closeEvent', closeMenu);
-            }
           }
         };
 
