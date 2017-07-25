@@ -87,7 +87,6 @@ angular.module('mm.foundation.dropdownToggle', ['mm.foundation.position', 'mm.fo
               css.position = null;
               css['max-width'] = null;
             }
-
             dropdown.css(css);
             element.addClass('expanded');
 
