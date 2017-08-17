@@ -64,7 +64,7 @@ angular.module( 'mm.foundation.tooltip', [ 'mm.foundation.position', 'mm.foundat
    * Returns the actual instance of the $tooltip service.
    * TODO support multiple triggers
    */
-  this.$get = [ '$window', '$compile', '$timeout', '$parse', '$document', '$position', '$interpolate' '$transitions',
+  this.$get = [ '$window', '$compile', '$timeout', '$parse', '$document', '$position', '$interpolate', '$transitions',
       function ( $window, $compile, $timeout, $parse, $document, $position, $interpolate, $transitions ) {
     return function $tooltip ( type, prefix, defaultTriggerShow ) {
       var options = angular.extend( {}, defaultOptions, globalOptions );
@@ -308,6 +308,7 @@ angular.module( 'mm.foundation.tooltip', [ 'mm.foundation.position', 'mm.foundat
 
             function removeTooltip() {
               if (tooltip) {
+                $document.off('click');
                 tooltip.remove();
                 tooltip = null;
               }
