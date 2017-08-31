@@ -2,7 +2,7 @@
  * angular-mm-foundation
  * http://pineconellc.github.io/angular-foundation/
 
- * Version: 0.9.0-SNAPSHOT - 2017-08-17
+ * Version: 0.9.0-SNAPSHOT - 2017-08-31
  * License: MIT
  * (c) Pinecone, LLC
  */
@@ -3459,8 +3459,8 @@ angular.module('mm.foundation.typeahead', ['mm.foundation.position', 'mm.foundat
       },
       link:function (scope, element, attrs) {
         var tplUrl = $parse(attrs.templateUrl)(scope.$parent) || 'template/typeahead/typeahead-match.html';
-        $http.get(tplUrl, {cache: $templateCache}).success(function(tplContent){
-           element.replaceWith($compile(tplContent.trim())(scope));
+        $http.get(tplUrl, {cache: $templateCache}).then(function(tplContent){
+           element.replaceWith($compile(tplContent.data.trim())(scope));
         });
       }
     };
