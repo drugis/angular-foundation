@@ -1,4 +1,15 @@
+import angular from "angular";
+import mocks from "angular-mocks";
+
+import "src/pagination/pagination.js"
+import "src/pagination/pagination.html.js"
+import "src/pagination/pager.html.js"
+
 describe('pagination directive', function () {
+
+  var inject = mocks.inject;
+  var module = mocks.module;
+
   var $compile, $rootScope, element;
   beforeEach(module('mm.foundation.pagination'));
   beforeEach(module('template/pagination/pagination.html'));
@@ -20,7 +31,7 @@ describe('pagination directive', function () {
   }
 
   function clickPaginationEl(index) {
-    getPaginationEl(index).find('a').click();
+    getPaginationEl(index)[0].querySelector('a').click();
   }
 
   function updateCurrentPage(value) {
@@ -34,13 +45,13 @@ describe('pagination directive', function () {
 
   it('contains num-pages + 2 li elements', function() {
     expect(getPaginationBarSize()).toBe(7);
-    expect(getPaginationEl(0).text()).toBe('Previous');
-    expect(getPaginationEl(-1).text()).toBe('Next');
+    expect(getPaginationEl(0).text().trim()).toBe('Previous');
+    expect(getPaginationEl(-1).text().trim()).toBe('Next');
   });
 
   it('has the number of the page as text in each page item', function() {
     for (var i = 1; i <= 5; i++) {
-      expect(getPaginationEl(i).text()).toEqual(''+i);
+      expect(getPaginationEl(i).text().trim()).toEqual(''+i);
     }
   });
 
@@ -90,8 +101,8 @@ describe('pagination directive', function () {
     $rootScope.$digest();
 
     expect(getPaginationBarSize()).toBe(10);
-    expect(getPaginationEl(0).text()).toBe('Previous');
-    expect(getPaginationEl(-1).text()).toBe('Next');
+    expect(getPaginationEl(0).text().trim()).toBe('Previous');
+    expect(getPaginationEl(-1).text().trim()).toBe('Next');
   });
 
   it('does not "break" when `total-items` is undefined', function() {
@@ -131,8 +142,8 @@ describe('pagination directive', function () {
 
     it('changes the number of pages', function() {
       expect(getPaginationBarSize()).toBe(12);
-      expect(getPaginationEl(0).text()).toBe('Previous');
-      expect(getPaginationEl(-1).text()).toBe('Next');
+      expect(getPaginationEl(0).text().trim()).toBe('Previous');
+      expect(getPaginationEl(-1).text().trim()).toBe('Next');
     });
 
     it('changes the number of pages when changes', function() {
@@ -140,8 +151,8 @@ describe('pagination directive', function () {
       $rootScope.$digest();
 
       expect(getPaginationBarSize()).toBe(5);
-      expect(getPaginationEl(0).text()).toBe('Previous');
-      expect(getPaginationEl(-1).text()).toBe('Next');
+      expect(getPaginationEl(0).text().trim()).toBe('Previous');
+      expect(getPaginationEl(-1).text().trim()).toBe('Next');
     });
 
     it('selects the last page when current page is too big', function() {
@@ -150,8 +161,8 @@ describe('pagination directive', function () {
 
       expect($rootScope.currentPage).toBe(2);
       expect(getPaginationBarSize()).toBe(4);
-      expect(getPaginationEl(0).text()).toBe('Previous');
-      expect(getPaginationEl(-1).text()).toBe('Next');
+      expect(getPaginationEl(0).text().trim()).toBe('Previous');
+      expect(getPaginationEl(-1).text().trim()).toBe('Next');
     });
 
     it('displays a single page when it is negative', function() {
@@ -159,9 +170,9 @@ describe('pagination directive', function () {
       $rootScope.$digest();
 
       expect(getPaginationBarSize()).toBe(3);
-      expect(getPaginationEl(0).text()).toBe('Previous');
-      expect(getPaginationEl(1).text()).toBe('1');
-      expect(getPaginationEl(-1).text()).toBe('Next');
+      expect(getPaginationEl(0).text().trim()).toBe('Previous');
+      expect(getPaginationEl(1).text().trim()).toBe('1');
+      expect(getPaginationEl(-1).text().trim()).toBe('Next');
     });
   });
 
@@ -186,7 +197,7 @@ describe('pagination directive', function () {
       updateCurrentPage('04');
       expect(getPaginationEl(4)).toHaveClass('current');
     });
-    
+
     it('defaults to 1 if non-numeric', function() {
       updateCurrentPage('pizza');
       expect(getPaginationEl(1)).toHaveClass('current');
@@ -204,8 +215,8 @@ describe('pagination directive', function () {
 
     it('contains maxsize + 2 li elements', function() {
       expect(getPaginationBarSize()).toBe($rootScope.maxSize + 2);
-      expect(getPaginationEl(0).text()).toBe('Previous');
-      expect(getPaginationEl(-1).text()).toBe('Next');
+      expect(getPaginationEl(0).text().trim()).toBe('Previous');
+      expect(getPaginationEl(-1).text().trim()).toBe('Next');
     });
 
     it('shows the page number even if it can\'t be shown in the middle', function() {
@@ -222,7 +233,7 @@ describe('pagination directive', function () {
 
       expect($rootScope.currentPage).toBe(7);
       expect(getPaginationEl(3)).toHaveClass('current');
-      expect(getPaginationEl(3).text()).toBe(''+$rootScope.currentPage);
+      expect(getPaginationEl(3).text().trim()).toBe(''+$rootScope.currentPage);
     });
 
     it('shows the page number in middle after the prev link is clicked', function() {
@@ -231,7 +242,7 @@ describe('pagination directive', function () {
 
       expect($rootScope.currentPage).toBe(6);
      expect(getPaginationEl(3)).toHaveClass('current');
-      expect(getPaginationEl(3).text()).toBe(''+$rootScope.currentPage);
+      expect(getPaginationEl(3).text().trim()).toBe(''+$rootScope.currentPage);
     });
 
     it('changes pagination bar size when max-size value changed', function() {
@@ -256,8 +267,8 @@ describe('pagination directive', function () {
       $rootScope.maxSize = 0;
       $rootScope.$digest();
       expect(getPaginationBarSize()).toBe(2);
-      expect(getPaginationEl(0).text()).toBe('Previous');
-      expect(getPaginationEl(-1).text()).toBe('Next');
+      expect(getPaginationEl(0).text().trim()).toBe('Previous');
+      expect(getPaginationEl(-1).text().trim()).toBe('Next');
     });
   });
 
@@ -273,31 +284,31 @@ describe('pagination directive', function () {
 
     it('contains maxsize + 4 elements', function() {
       expect(getPaginationBarSize()).toBe($rootScope.maxSize + 4);
-      expect(getPaginationEl(0).text()).toBe('Previous');
-      expect(getPaginationEl(1).text()).toBe('...');
-      expect(getPaginationEl(2).text()).toBe('6');
-      expect(getPaginationEl(-3).text()).toBe('10');
-      expect(getPaginationEl(-2).text()).toBe('...');
-      expect(getPaginationEl(-1).text()).toBe('Next');
+      expect(getPaginationEl(0).text().trim()).toBe('Previous');
+      expect(getPaginationEl(1).text().trim()).toBe('...');
+      expect(getPaginationEl(2).text().trim()).toBe('6');
+      expect(getPaginationEl(-3).text().trim()).toBe('10');
+      expect(getPaginationEl(-2).text().trim()).toBe('...');
+      expect(getPaginationEl(-1).text().trim()).toBe('Next');
     });
 
     it('shows only the next ellipsis element on first page set', function() {
       updateCurrentPage(3);
-      expect(getPaginationEl(1).text()).toBe('1');
-      expect(getPaginationEl(-3).text()).toBe('5');
-      expect(getPaginationEl(-2).text()).toBe('...');
+      expect(getPaginationEl(1).text().trim()).toBe('1');
+      expect(getPaginationEl(-3).text().trim()).toBe('5');
+      expect(getPaginationEl(-2).text().trim()).toBe('...');
     });
 
     it('shows only the previous ellipsis element on last page set', function() {
       updateCurrentPage(12);
       expect(getPaginationBarSize()).toBe(5);
-      expect(getPaginationEl(1).text()).toBe('...');
-      expect(getPaginationEl(2).text()).toBe('11');
-      expect(getPaginationEl(-2).text()).toBe('12');
+      expect(getPaginationEl(1).text().trim()).toBe('...');
+      expect(getPaginationEl(2).text().trim()).toBe('11');
+      expect(getPaginationEl(-2).text().trim()).toBe('12');
     });
 
     it('moves to the previous set when first ellipsis is clicked', function() {
-      expect(getPaginationEl(1).text()).toBe('...');
+      expect(getPaginationEl(1).text().trim()).toBe('...');
 
       clickPaginationEl(1);
 
@@ -306,7 +317,7 @@ describe('pagination directive', function () {
     });
 
     it('moves to the next set when last ellipsis is clicked', function() {
-      expect(getPaginationEl(-2).text()).toBe('...');
+      expect(getPaginationEl(-2).text().trim()).toBe('...');
 
       clickPaginationEl(-2);
 
@@ -319,8 +330,8 @@ describe('pagination directive', function () {
       $rootScope.$digest();
 
       expect(getPaginationBarSize()).toBe(2);
-      expect(getPaginationEl(0).text()).toBe('Previous');
-      expect(getPaginationEl(1).text()).toBe('Next');
+      expect(getPaginationEl(0).text().trim()).toBe('Previous');
+      expect(getPaginationEl(1).text().trim()).toBe('Next');
     });
   });
 
@@ -332,10 +343,10 @@ describe('pagination directive', function () {
 
     it('contains num-pages + 4 li elements', function() {
       expect(getPaginationBarSize()).toBe(9);
-      expect(getPaginationEl(0).text()).toBe('First');
-      expect(getPaginationEl(1).text()).toBe('Previous');
-      expect(getPaginationEl(-2).text()).toBe('Next');
-      expect(getPaginationEl(-1).text()).toBe('Last');
+      expect(getPaginationEl(0).text().trim()).toBe('First');
+      expect(getPaginationEl(1).text().trim()).toBe('Previous');
+      expect(getPaginationEl(-2).text().trim()).toBe('Next');
+      expect(getPaginationEl(-1).text().trim()).toBe('Last');
     });
 
     it('has first and last li elements visible', function() {
@@ -384,16 +395,16 @@ describe('pagination directive', function () {
       element = $compile('<pagination boundary-links="true" first-text="<<<" last-text=">>>" total-items="total" page="currentPage"></pagination>')($rootScope);
       $rootScope.$digest();
 
-      expect(getPaginationEl(0).text()).toBe('<<<');
-      expect(getPaginationEl(-1).text()).toBe('>>>');
+      expect(getPaginationEl(0).text().trim()).toBe('<<<');
+      expect(getPaginationEl(-1).text().trim()).toBe('>>>');
     });
 
     it('changes "previous" & "next" text from attributes', function() {
       element = $compile('<pagination boundary-links="true" previous-text="<<" next-text=">>" total-items="total" page="currentPage"></pagination>')($rootScope);
       $rootScope.$digest();
 
-      expect(getPaginationEl(1).text()).toBe('<<');
-      expect(getPaginationEl(-2).text()).toBe('>>');
+      expect(getPaginationEl(1).text().trim()).toBe('<<');
+      expect(getPaginationEl(-2).text().trim()).toBe('>>');
     });
 
     it('changes "first" & "last" text from interpolated attributes', function() {
@@ -402,8 +413,8 @@ describe('pagination directive', function () {
       element = $compile('<pagination boundary-links="true" first-text="{{myfirstText}}" last-text="{{mylastText}}" total-items="total" page="currentPage"></pagination>')($rootScope);
       $rootScope.$digest();
 
-      expect(getPaginationEl(0).text()).toBe('<<<');
-      expect(getPaginationEl(-1).text()).toBe('>>>');
+      expect(getPaginationEl(0).text().trim()).toBe('<<<');
+      expect(getPaginationEl(-1).text().trim()).toBe('>>>');
     });
 
     it('changes "previous" & "next" text from interpolated attributes', function() {
@@ -412,8 +423,8 @@ describe('pagination directive', function () {
       element = $compile('<pagination boundary-links="true" previous-text="{{previousText}}" next-text="{{nextText}}" total-items="total" page="currentPage"></pagination>')($rootScope);
       $rootScope.$digest();
 
-      expect(getPaginationEl(1).text()).toBe('<<');
-      expect(getPaginationEl(-2).text()).toBe('>>');
+      expect(getPaginationEl(1).text().trim()).toBe('<<');
+      expect(getPaginationEl(-2).text().trim()).toBe('>>');
     });
   });
 
@@ -425,13 +436,13 @@ describe('pagination directive', function () {
 
     it('contains num-pages li elements', function() {
       expect(getPaginationBarSize()).toBe(5);
-      expect(getPaginationEl(0).text()).toBe('1');
-      expect(getPaginationEl(-1).text()).toBe('5');
+      expect(getPaginationEl(0).text().trim()).toBe('1');
+      expect(getPaginationEl(-1).text().trim()).toBe('5');
     });
 
     it('has the number of the page as text in each page item', function() {
       for(var i = 0; i < 5; i++) {
-        expect(getPaginationEl(i).text()).toEqual(''+(i+1));
+        expect(getPaginationEl(i).text().trim()).toEqual(''+(i+1));
       }
     });
 
@@ -463,8 +474,8 @@ describe('pagination directive', function () {
       $rootScope.$digest();
 
       expect(getPaginationBarSize()).toBe(8);
-      expect(getPaginationEl(0).text()).toBe('1');
-      expect(getPaginationEl(-1).text()).toBe('8');
+      expect(getPaginationEl(0).text().trim()).toBe('1');
+      expect(getPaginationEl(-1).text().trim()).toBe('8');
     });
   });
 
@@ -477,10 +488,10 @@ describe('pagination directive', function () {
 
     it('contains number of pages + 2 li elements', function() {
       expect(getPaginationBarSize()).toBe(7);
-      expect(getPaginationEl(0).text()).toBe('First');
-      expect(getPaginationEl(1).text()).toBe('1');
-      expect(getPaginationEl(-2).text()).toBe('5');
-      expect(getPaginationEl(-1).text()).toBe('Last');
+      expect(getPaginationEl(0).text().trim()).toBe('First');
+      expect(getPaginationEl(1).text().trim()).toBe('1');
+      expect(getPaginationEl(-2).text().trim()).toBe('5');
+      expect(getPaginationEl(-1).text().trim()).toBe('Last');
     });
 
     it('disables the "first" & activates "1" link if current page is 1', function() {
@@ -548,10 +559,10 @@ describe('pagination directive', function () {
     }));
 
     it('should change paging text', function () {
-      expect(getPaginationEl(0).text()).toBe('FI');
-      expect(getPaginationEl(1).text()).toBe('PR');
-      expect(getPaginationEl(-2).text()).toBe('NE');
-      expect(getPaginationEl(-1).text()).toBe('LA');
+      expect(getPaginationEl(0).text().trim()).toBe('FI');
+      expect(getPaginationEl(1).text().trim()).toBe('PR');
+      expect(getPaginationEl(-2).text().trim()).toBe('NE');
+      expect(getPaginationEl(-1).text().trim()).toBe('LA');
     });
 
     it('contains number of pages + 4 li elements', function() {
@@ -570,10 +581,10 @@ describe('pagination directive', function () {
     });
 
     it('should change paging text from attribute', function () {
-      expect(getPaginationEl(0).text()).toBe('<<');
-      expect(getPaginationEl(1).text()).toBe('<');
-      expect(getPaginationEl(-2).text()).toBe('>');
-      expect(getPaginationEl(-1).text()).toBe('>>');
+      expect(getPaginationEl(0).text().trim()).toBe('<<');
+      expect(getPaginationEl(1).text().trim()).toBe('<');
+      expect(getPaginationEl(-2).text().trim()).toBe('>');
+      expect(getPaginationEl(-1).text().trim()).toBe('>>');
     });
   });
 

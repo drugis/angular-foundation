@@ -1,4 +1,15 @@
+import angular from "angular";
+import mocks from "angular-mocks";
+
+import "src/pagination/pagination.js"
+import "src/pagination/pagination.html.js"
+import "src/pagination/pager.html.js"
+
 describe('pager directive', function () {
+
+  var inject = mocks.inject;
+  var module = mocks.module;
+
   var $compile, $rootScope, element;
   beforeEach(module('mm.foundation.pagination'));
   beforeEach(module('template/pagination/pager.html'));
@@ -20,7 +31,7 @@ describe('pager directive', function () {
   }
 
   function clickPaginationEl(index) {
-    getPaginationEl(index).find('a').click();
+    getPaginationEl(index)[0].querySelector('a').click();
   }
 
   function updateCurrentPage(value) {

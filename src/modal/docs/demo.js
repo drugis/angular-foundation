@@ -1,46 +1,67 @@
-angular.module('foundationDemoApp').controller('ModalDemoCtrl', function ($scope, $modal, $log) {
+angular.module('foundationDemoApp').controller('ModalDemoCtrl', function($scope, $modal, $log) {
 
-  $scope.items = ['item1', 'item2', 'item3'];
+    $scope.open = open;
 
-  $scope.open = function () {
+    function open(size, backdrop, itemCount, closeOnClick) {
 
-    var modalInstance = $modal.open({
-      templateUrl: 'myModalContent.html',
-      controller: 'ModalInstanceCtrl',
-      resolve: {
-        items: function () {
-          return $scope.items;
+        $scope.items = [];
+
+        var count = itemCount || 3;
+
+        for(var i = 0; i < count; i++){
+            $scope.items.push('item ' + i);
         }
-      }
-    });
 
-    modalInstance.result.then(function (selectedItem) {
-      $scope.selected = selectedItem;
-    }, function () {
-      $log.info('Modal dismissed at: ' + new Date());
-    });
-  };
-});
+        var params = {
+            templateUrl: 'myModalContent.html',
+            resolve: {
+                items: function() {
+                    return $scope.items;
+                },
+            },
+            controller: function($scope, $modalInstance, items) {
 
-// Please note that $modalInstance represents a modal window (instance) dependency.
-// It is not the same as the $modal service used above.
+                $scope.items = items;
+                $scope.selected = {
+                    item: $scope.items[0],
+                };
 
-angular.module('foundationDemoApp').controller('ModalInstanceCtrl', function ($scope, $modalInstance, items) {
+                $scope.reposition = function() {
+                    $modalInstance.reposition();
+                };
 
-  $scope.items = items;
-  $scope.selected = {
-    item: $scope.items[0]
-  };
+                $scope.ok = function() {
+                    $modalInstance.close($scope.selected.item);
+                };
 
-  $scope.reposition = function () {
-    $modalInstance.reposition();
-  };
+                $scope.cancel = function() {
+                    $modalInstance.dismiss('cancel');
+                };
 
-  $scope.ok = function () {
-    $modalInstance.close($scope.selected.item);
-  };
+                $scope.openNested = function() {
+                    open();
+                };
+            }
+        };
 
-  $scope.cancel = function () {
-    $modalInstance.dismiss('cancel');
-  };
+        if(angular.isDefined(closeOnClick)){
+            params.closeOnClick = closeOnClick;
+        }
+
+        if(angular.isDefined(size)){
+            params.size = size;
+        }
+
+        if(angular.isDefined(backdrop)){
+            params.backdrop = backdrop;
+        }
+
+        var modalInstance = $modal.open(params);
+
+        modalInstance.result.then(function(selectedItem) {
+            $scope.selected = selectedItem;
+        }, function() {
+            $log.info('Modal dismissed at: ' + new Date());
+        });
+    };
 });

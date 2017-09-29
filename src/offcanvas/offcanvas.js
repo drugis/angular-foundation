@@ -1,81 +1,107 @@
-angular.module("mm.foundation.offcanvas", [])
-    .directive('offCanvasWrap', ['$window', function ($window) {
-        return {
-            scope: {},
-            restrict: 'C',
-            link: function ($scope, element, attrs) {
-                var win = angular.element($window);
-                var sidebar = $scope.sidebar = element;
+angular.module('mm.foundation.offcanvas', [])
+.directive('offCanvasWrapper', function($window) {
+    'ngInject';
+    return {
+        scope: {},
+        bindToController: {disableAutoClose: '='},
+        controllerAs: 'vm',
+        restrict: 'C',
+        controller: function($scope, $element) {
+            'ngInject';
+            var $ctrl = this;
 
-                $scope.hide = function () {
-                    sidebar.removeClass('move-left');
-                    sidebar.removeClass('move-right');
-                };
+            var left = angular.element($element[0].querySelector('.position-left'));
+            var right = angular.element($element[0].querySelector('.position-right'));
+            var inner = angular.element($element[0].querySelector('.off-canvas-wrapper-inner'));
+            // var overlay = angular.element(); js-off-canvas-exit
+            var exitOverlay = angular.element('<div class="js-off-canvas-exit"></div>');
+            inner.append(exitOverlay);
 
-                win.bind("resize.body", $scope.hide);
+            exitOverlay.on('click', function() {
+                $ctrl.hide();
+            });
 
-                $scope.$on('$destroy', function() {
-                    win.unbind("resize.body", $scope.hide);
-                });
+            $ctrl.leftToggle = function() {
+                inner && inner.toggleClass('is-off-canvas-open');
+                inner && inner.toggleClass('is-open-left');
+                left && left.toggleClass('is-open');
+                exitOverlay.addClass('is-visible');
+                // is-visible
+            };
 
-            },
-            controller: ['$scope', function($scope) {
+            $ctrl.rightToggle = function() {
+                inner && inner.toggleClass('is-off-canvas-open');
+                inner && inner.toggleClass('is-open-right');
+                right && right.toggleClass('is-open');
+                exitOverlay.addClass('is-visible');
+            };
 
-                this.leftToggle = function() {
-                    $scope.sidebar.toggleClass("move-right");
-                };
+            $ctrl.hide = function() {
+                inner && inner.removeClass('is-open-left');
+                inner && inner.removeClass('is-open-right');
+                left && left.removeClass('is-open');
+                right && right.removeClass('is-open');
+                inner && inner.removeClass('is-off-canvas-open');
+                exitOverlay.removeClass('is-visible');
+            };
 
-                this.rightToggle = function() {
-                    $scope.sidebar.toggleClass("move-left");
-                };
+            var win = angular.element($window);
 
-                this.hide = function() {
-                    $scope.hide();
-                };
-            }]
-        };
-    }])
-    .directive('leftOffCanvasToggle', [function () {
-        return {
-            require: '^offCanvasWrap',
-            restrict: 'C',
-            link: function ($scope, element, attrs, offCanvasWrap) {
-                element.on('click', function () {
-                    offCanvasWrap.leftToggle();
-                });
+            win.bind('resize.body', $ctrl.hide);
+
+            $scope.$on('$destroy', function() {
+                win.unbind('resize.body', $ctrl.hide);
+            });
+        }
+    };
+})
+.directive('leftOffCanvasToggle', function() {
+    'ngInject';
+    return {
+        require: '^^offCanvasWrapper',
+        restrict: 'C',
+        link: function($scope, element, attrs, offCanvasWrapper) {
+            element.on('click', function() {
+                offCanvasWrapper.leftToggle();
+            });
+        }
+    };
+})
+.directive('rightOffCanvasToggle', function() {
+    'ngInject';
+    return {
+        require: '^^offCanvasWrapper',
+        restrict: 'C',
+        link: function($scope, element, attrs, offCanvasWrapper) {
+            element.on('click', function() {
+                offCanvasWrapper.rightToggle();
+            });
+        }
+    };
+})
+.directive('offCanvas', function() {
+    'ngInject';
+    return {
+        require: {'offCanvasWrapper': '^^offCanvasWrapper'},
+        restrict: 'C',
+        bindToController: {},
+        scope: {},
+        controllerAs: 'vm',
+        controller: function() {}
+    };
+})
+.directive('li', function() {
+    'ngInject';
+    return {
+        require: '?^^offCanvas',
+        restrict: 'E',
+        link: function($scope, element, attrs, offCanvas) {
+            if(!offCanvas || offCanvas.offCanvasWrapper.disableAutoClose){
+                return;
             }
-        };
-    }])
-    .directive('rightOffCanvasToggle', [function () {
-        return {
-            require: '^offCanvasWrap',
-            restrict: 'C',
-            link: function ($scope, element, attrs, offCanvasWrap) {
-                element.on('click', function () {
-                    offCanvasWrap.rightToggle();
-                });
-            }
-        };
-    }])
-       .directive('exitOffCanvas', [function () {
-        return {
-            require: '^offCanvasWrap',
-            restrict: 'C',
-            link: function ($scope, element, attrs, offCanvasWrap) {
-                element.on('click', function () {
-                    offCanvasWrap.hide();
-                });
-            }
-        };
-    }])
-    .directive('offCanvasList', [function () {
-        return {
-            require: '^offCanvasWrap',
-            restrict: 'C',
-            link: function ($scope, element, attrs, offCanvasWrap) {
-                element.on('click', function () {
-                    offCanvasWrap.hide();
-                });
-            }
-        };
-    }]);
+            element.on('click', function() {
+                offCanvas.offCanvasWrapper.hide();
+            });
+        }
+    };
+});

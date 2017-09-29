@@ -1,22 +1,27 @@
 ### Please see [this issue](https://github.com/pineconellc/angular-foundation/issues/311) for an important update regarding this project.
 
 # Angular Components for [Foundation](http://foundation.zurb.com/)
-[![Build Status](https://semaphoreapp.com/api/v1/projects/670cabb5-3c50-4197-9df5-e75cf62c9d20/237671/badge.png)](https://semaphoreapp.com/pinecone/angular-foundation)
-[![Latest Version](https://badge.fury.io/bo/angular-foundation.svg)](https://github.com/pineconellc/angular-foundation-bower)
 ***
 
 This project is a port of the AngularUI team's excellent [angular-bootstrap](https://github.com/angular-ui/bootstrap) project for use in the [Foundation](http://foundation.zurb.com/) framework.
 
+[![Build Status](https://travis-ci.org/circlingthesun/angular-foundation-6.svg)](https://travis-ci.org/circlingthesun/angular-foundation-6)
+
 ## Demo
 
-Do you want to see this in action? Visit http://pineconellc.github.io/angular-foundation/
+Do you want to see this in action? Visit http://circlingthesun.github.io/angular-foundation-6/
 
 ## Installation
 
-Installation is easy as angular-mm-foundation has minimal dependencies - only the AngularJS and Foundation's CSS are required.
-After downloading dependencies (or better yet, referencing them from your favourite CDN) you need to download build version of this project. All the files and their purposes are described here:
-https://github.com/pineconellc/angular-foundation/tree/gh-pages
-Don't worry, if you are not sure which file to take, opt for `mm-foundation-tpls-[version].min.js`.
+Installation is easy as angular-foundation-6 has minimal dependencies - only AngularJS (with angular-touch), and Foundation's CSS are required.
+After downloading dependencies (or better yet, referencing them from your favourite CDN) you need to download build version of this project.
+
+Angular Foundation comes in several flavors:
+
+* `angular-foundation.js` **with** templates
+* `angular-foundation-no-tpls.js` **without** templates
+* `angular-foundation.min.js` minified **with** templates
+* `angular-foundation-no-tpls.min.js` minified **without** templates
 
 When you are done downloading all the dependencies and project files the only remaining part is to add dependencies on the `mm.foundation` AngularJS module:
 
@@ -29,11 +34,12 @@ angular.module('myModule', ['mm.foundation']);
 * Split Buttons
 * Reveal Modal
 * Alerts
-* Joyride
-* Dropdowns
+* Dropdown Toggle
 * Tabs
 * Offcanvas
-* Interchange
+* Orbit
+* Dropdown Menu
+* Drilldown Menu
 
 We'd gladly accept contributions for any remaining components.
 
@@ -48,8 +54,6 @@ Directives **should** work with the following browsers:
 * Safari
 
 Modern mobile browsers should work without problems.
-
-**IE 8 and 9 are not officially supported.**
 
 ## Project philosophy
 
@@ -80,30 +84,23 @@ We are always looking for the quality contributions! Please check the [CONTRIBUT
 ### Development
 #### Prepare your environment
 * Install [Node.js](http://nodejs.org/) which should include `npm`
-* Install global dev dependencies: `npm install -g grunt-cli karma bower`
+* Install global dev dependencies: `npm install -g gulp`
 * Instal local dev dependencies: `npm install` while current directory is foundation repo
-* Install test dependencies: `bower install`
+* Install test dependencies: `jspm install`
 
 #### Build
-* Build the whole project: `grunt` - this will run `lint`, `test`, and `concat` targets
-* To build modules, first run `grunt html2js` then `grunt build:module1:module2...:moduleN`
+* Build the whole project: `gulp` - this will build the project, demo, start a local server on port 8080 and rebuild when code changes are made
+* To build modules run `gulp build --modules=module1,module2...:moduleN`
 
-You can generate a custom build, containing only needed modules, from the project's homepage.
-Alternativelly you can run local Grunt build from the command line and list needed modules as shown below:
-
-```
-grunt build:modal:tabs:alert:popover:dropdownToggle:buttons:progressbar
-```
-
-Check the Grunt build file for other tasks that are defined for this project.
+Not specifying any modules will build all modules. Check the `gulpfile.js` file for other tasks that are defined for this project.
 
 #### TDD
-* Run test: `grunt watch`
+* Run test: `gulp watch`
 
 This will start Karma server and will continously watch files in the project, executing tests upon every change.
 
 #### Test coverage
-Add the `--coverage` option (e.g. `grunt test --coverage`, `grunt watch --coverage`) to see reports on the test coverage. These coverage reports are found in the coverage folder.
+Add the `--coverage` option (e.g. `gulp test --coverage`, `gulp test-legacy --coverage`) to see reports on the test coverage. These coverage reports are found in the coverage folder.
 
 ### Customize templates
 
@@ -113,7 +110,7 @@ templates to match your desired look & feel, add new functionality etc.
 The easiest way to override an individual template is to use the `<script>` directive:
 
 ```javascript
-<script id="template/alert/alert.html" type="text/ng-template">
+<script id="src/alert/alert.html" type="text/ng-template">
     <div class='alert' ng-class='type && "alert-" + type'>
         <button ng-show='closeable' type='button' class='close' ng-click='close()'>Close</button>
         <div ng-transclude></div>
@@ -125,7 +122,7 @@ If you want to override more templates it makes sense to store them as individua
 For people using Grunt as the build tool it can be easily done using the `grunt-html2js` plugin. You can also configure your own template url.
 Let's have a look:
 
-Your own template url is `views/partials/mm-foundation-tpls/alert/alert.html`.
+Your own template url is `views/partials/angular-foundation-6-tpls/alert/alert.html`.
 
 Add "html2js" task to your Gruntfile
 ```
@@ -134,12 +131,12 @@ html2js: {
     base: '.',
     module: 'ui-templates',
     rename: function (modulePath) {
-      var moduleName = modulePath.replace('app/views/partials/mm-foundation-tpls/', '').replace('.html', '');
+      var moduleName = modulePath.replace('app/views/partials/angular-foundation-tpls/', '').replace('.html', '');
       return 'template' + '/' + moduleName + '.html';
     }
   },
   main: {
-    src: ['app/views/partials/mm-foundation-tpls/**/*.html'],
+    src: ['app/views/partials/angular-foundation-tpls/**/*.html'],
     dest: '.tmp/ui-templates.js'
   }
 }
@@ -159,21 +156,6 @@ angular.module('myApp', [
 Then it will work fine!
 
 For more information visit: https://github.com/karlgoldstein/grunt-html2js
-
-### Release
-* Bump up version number in `package.json`
-* Commit the version change with the following message: `chore(release): [version number]`
-* tag
-* push changes and a tag (`git push --tags`)
-* switch to the `gh-pages` branch: `git checkout gh-pages`
-* copy content of the dist folder to the main folder
-* Commit the version change with the following message: `chore(release): [version number]`
-* push changes
-* switch back to the `main branch` and modify `package.json` to bump up version for the next iteration
-* commit (`chore(release): starting [version number]`) and push
-* publish Bower and NuGet packages
-
-Well done! (If you don't like repeating yourself open a PR with a grunt task taking care of the above!)
 
 ## Credits
 

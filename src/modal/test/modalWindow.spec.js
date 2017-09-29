@@ -1,18 +1,28 @@
-describe('modal window', function () {
+import angular from "angular";
+import mocks from "angular-mocks";
 
-  var $rootScope, $compile;
+import "src/modal/modal.js"
+import "src/modal/window.html.js"
+import "src/modal/backdrop.html.js"
 
-  beforeEach(module('mm.foundation.modal'));
-  beforeEach(module('template/modal/window.html'));
-  beforeEach(inject(function (_$rootScope_, _$compile_) {
-    $rootScope = _$rootScope_;
-    $compile = _$compile_;
-  }));
+describe('modal window', function() {
 
-  it('should support custom CSS classes as string', function () {
-    var windowEl = $compile('<div modal-window window-class="test">content</div>')($rootScope);
-    $rootScope.$digest();
+    var inject = mocks.inject;
+    var module = mocks.module;
 
-    expect(windowEl).toHaveClass('test');
-  });
+    var $rootScope, $compile;
+
+    beforeEach(module('mm.foundation.modal'));
+    beforeEach(module('template/modal/window.html'));
+    beforeEach(inject(function(_$rootScope_, _$compile_) {
+        $rootScope = _$rootScope_;
+        $compile = _$compile_;
+    }));
+
+    it('should support custom CSS classes as string', function() {
+        var windowEl = $compile('<div modal-window window-class="test">content</div>')($rootScope);
+        $rootScope.$digest();
+
+        expect(windowEl).toHaveClass('test');
+    });
 });

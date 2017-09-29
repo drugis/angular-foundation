@@ -1,105 +1,123 @@
-describe('tooltip directive', function () {
+import angular from "angular";
+import mocks from "angular-mocks";
 
-  var $rootScope, $compile, $document, $timeout;
+import "src/bindHtml/bindHtml.js"
+import "src/tooltip/tooltip.js"
+import "src/tooltip/tooltip-popup.html.js"
+import "src/tooltip/tooltip-html-unsafe-popup.html.js"
 
-  beforeEach(module('mm.foundation.tooltip'));
-  beforeEach(module('template/tooltip/tooltip-popup.html'));
-  beforeEach(inject(function (_$rootScope_, _$compile_, _$document_, _$timeout_) {
-    $rootScope = _$rootScope_;
-    $compile = _$compile_;
-    $document = _$document_;
-    $timeout = _$timeout_;
-  }));
+describe('tooltip directive', function() {
 
-  beforeEach(function(){
-    this.addMatchers({
-      toHaveOpenTooltips: function(noOfOpened) {
-        var ttipElements = this.actual.find('span.tooltip');
-        noOfOpened = noOfOpened || 1;
+    var inject = mocks.inject;
+    var module = mocks.module;
 
-        this.message = function() {
-          return "Expected '" + angular.mock.dump(ttipElements) + "' to have '" + ttipElements.length + "' opened tooltips.";
-        };
+    var $rootScope;
+    var $compile;
+    var $document;
+    var $timeout;
 
-        return ttipElements.length === noOfOpened;
-      }
+    beforeEach(module('mm.foundation.tooltip'));
+    beforeEach(module('template/tooltip/tooltip-popup.html'));
+    beforeEach(inject(function(_$rootScope_, _$compile_, _$document_, _$timeout_) {
+        $rootScope = _$rootScope_;
+        $compile = _$compile_;
+        $document = _$document_;
+        $timeout = _$timeout_;
+    }));
+
+    beforeEach(function() {
+        jasmine.addMatchers({
+            toHaveOpenTooltips: function(util, customEqualityTesters) {
+                function compare(actual, noOfOpened) {
+                    var ttipElements = angular.element(actual[0].querySelectorAll('div.tooltip'));
+                    noOfOpened = noOfOpened || 1;
+                    var passed = ttipElements.length === noOfOpened;
+                    return {
+                        pass: passed,
+                        message: "Expected '" + angular.mock.dump(ttipElements) + "' to have '" + ttipElements.length + "' opened tooltips."
+                    };
+                }
+                return {
+                    compare: compare
+                };
+            },
+        });
     });
-  });
 
-  function compileTooltip(ttipMarkup) {
-    var fragment = $compile('<div>'+ttipMarkup+'</div>')($rootScope);
-    $rootScope.$digest();
-    return fragment;
-  }
-
-  function closeTooltip(hostEl, trigger, shouldNotFlush) {
-    hostEl.trigger(trigger || 'mouseleave' );
-    if (!shouldNotFlush) {
-      $timeout.flush();
+    function compileTooltip(ttipMarkup) {
+        var fragment = $compile('<div>' + ttipMarkup + '</div>')($rootScope);
+        $rootScope.$digest();
+        return fragment;
     }
-  }
 
-  describe('basic scenarios with default options', function () {
+    function closeTooltip(hostEl, trigger, shouldNotFlush) {
+        hostEl.triggerHandler(trigger || 'mouseout');
+        if (!shouldNotFlush) {
+            $timeout.flush();
+        }
+    }
 
-    it('shows default tooltip on mouse enter and closes on mouse leave', function () {
-      var fragment = compileTooltip('<span tooltip="tooltip text">Trigger here</span>');
+    describe('basic scenarios with default options', function() {
 
-      fragment.find('span').trigger( 'mouseenter' );
-      expect(fragment).toHaveOpenTooltips();
+        it('shows default tooltip on mouse enter and closes on mouse leave', function() {
+            var fragment = compileTooltip('<span tooltip="tooltip text">Trigger here</span>');
 
-      closeTooltip(fragment.find('span'));
-      expect(fragment).not.toHaveOpenTooltips();
+            fragment.find('span').triggerHandler('mouseover');
+            expect(fragment).toHaveOpenTooltips();
+
+            closeTooltip(fragment.find('span'));
+            expect(fragment).not.toHaveOpenTooltips();
+        });
+
+        it('should not show a tooltip when its content is empty', function() {
+            var fragment = compileTooltip('<span tooltip=""></span>');
+            fragment.find('span').triggerHandler('mouseover');
+            expect(fragment).not.toHaveOpenTooltips();
+        });
+
+        it('should not show a tooltip when its content becomes empty', function() {
+
+            $rootScope.content = 'some text';
+            var fragment = compileTooltip('<span tooltip="{{ content }}"></span>');
+
+            fragment.find('span').triggerHandler('mouseover');
+            expect(fragment).toHaveOpenTooltips();
+
+            $rootScope.content = '';
+            $rootScope.$digest();
+            $timeout.flush();
+            expect(fragment).not.toHaveOpenTooltips();
+        });
+
+        it('should update tooltip when its content becomes empty', function() {
+            $rootScope.content = 'some text';
+            var fragment = compileTooltip('<span tooltip="{{ content }}"></span>');
+
+            $rootScope.content = '';
+            $rootScope.$digest();
+
+            fragment.find('span').triggerHandler('mouseover');
+            expect(fragment).not.toHaveOpenTooltips();
+        });
     });
 
-    it('should not show a tooltip when its content is empty', function () {
-      var fragment = compileTooltip('<span tooltip=""></span>');
-      fragment.find('span').trigger( 'mouseenter' );
-      expect(fragment).not.toHaveOpenTooltips();
-    });
+    describe('option by option', function() {
 
-    it('should not show a tooltip when its content becomes empty', function () {
+        describe('placement', function() {
 
-      $rootScope.content = 'some text';
-      var fragment = compileTooltip('<span tooltip="{{ content }}"></span>');
+            it('can specify an alternative, valid placement', function() {
+                var fragment = compileTooltip('<span tooltip="tooltip text" tooltip-placement="left">Trigger here</span>');
+                fragment.find('span').triggerHandler('mouseover');
 
-      fragment.find('span').trigger( 'mouseenter' );
-      expect(fragment).toHaveOpenTooltips();
+                var ttipElement = angular.element(fragment[0].querySelector('div.tooltip'));
+                expect(fragment).toHaveOpenTooltips();
+                expect(ttipElement).toHaveClass('left');
 
-      $rootScope.content = '';
-      $rootScope.$digest();
-      $timeout.flush();
-      expect(fragment).not.toHaveOpenTooltips();
-    });
+                closeTooltip(fragment.find('span'));
+                expect(fragment).not.toHaveOpenTooltips();
+            });
 
-    it('should update tooltip when its content becomes empty', function () {
-      $rootScope.content = 'some text';
-      var fragment = compileTooltip('<span tooltip="{{ content }}"></span>');
-
-      $rootScope.content = '';
-      $rootScope.$digest();
-
-      fragment.find('span').trigger( 'mouseenter' );
-      expect(fragment).not.toHaveOpenTooltips();
-    });
-  });
-
-  describe('option by option', function () {
-
-    describe('placement', function () {
-
-      it('can specify an alternative, valid placement', function () {
-        var fragment = compileTooltip('<span tooltip="tooltip text" tooltip-placement="left">Trigger here</span>');
-        fragment.find('span').trigger( 'mouseenter' );
-
-        var ttipElement = fragment.find('span.tooltip');
-        expect(fragment).toHaveOpenTooltips();
-        expect(ttipElement).toHaveClass('tip-left');
-
-        closeTooltip(fragment.find('span'));
-        expect(fragment).not.toHaveOpenTooltips();
-      });
+        });
 
     });
-
-  });
 });

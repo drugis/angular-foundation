@@ -1,3 +1,133 @@
+function DropdownToggleController($scope, $attrs, mediaQueries, $element, $position, $timeout, $transclude, dropdownPaneOffset) {
+    'ngInject';
+    const $ctrl = this;
+    let hoverTimeout;
+    const $body = angular.element(document.querySelector('body'));
+    $ctrl.css = {};
+
+    $transclude((clone, tScope) => {
+        const el = angular.element($element[0].querySelector('span:nth-child(1)'))
+        el.append(clone);
+    }, $element.parent(), 'toggle');
+
+    $transclude((clone, tScope) => {
+        tScope.$close = close;
+        const el = angular.element($element[0].querySelector('div:nth-child(2)'))
+        el.append(clone);
+    }, $element.parent(), 'pane');
+
+    $timeout(() => {
+        positionPane();
+    });
+
+    function close(e) {
+        $ctrl.active = false;
+
+        if ($ctrl.closeOnClick) {
+            $body.off('click', closeOnClick);
+        }
+    }
+
+    function open(e) {
+        $ctrl.active = true;
+
+        positionPane(dropdownPaneOffset);
+
+        if ($ctrl.closeOnClick) {
+            $body.on('click', closeOnClick);
+        }
+    }
+
+    function closeOnClick(e) {
+        const elementContents = Array.prototype.slice.apply($element[0].querySelectorAll('*'));
+
+        if (!elementContents.length) {
+            return;
+        }
+
+        const isOuterElement = elementContents.every((node) => node !== e.target);
+
+        if (isOuterElement) {
+            close();
+            $scope.$apply();
+        }
+    }
+
+    $ctrl.$onDestroy = () => {
+        if ($ctrl.closeOnClick) {
+            $body.off('click', closeOnClick);
+        }
+    };
+
+
+    $ctrl.toggle = () => {
+        if ($ctrl.active) {
+            close();
+        } else {
+            open();
+        }
+    };
+
+    $ctrl.mouseover = () => {
+        $timeout.cancel(hoverTimeout);
+        $timeout(() => {
+            $ctrl.active = true;
+        });
+        positionPane(dropdownPaneOffset);
+    };
+
+    $ctrl.mouseleave = () => {
+        $timeout.cancel(hoverTimeout);
+        hoverTimeout = $timeout(() => {
+            $scope.$apply(() => {
+                $ctrl.active = false;
+            });
+        }, 250);
+    };
+
+    function positionPane(offset_) {
+        const offset = $ctrl.paneOffset || offset_;
+        const dropdownTrigger = angular.element($element[0].querySelector('toggle *:first-child'));
+
+        // let dropdownWidth = dropdown.prop('offsetWidth');
+        const triggerPosition = $position.position(dropdownTrigger);
+
+        $ctrl.css.top = `${triggerPosition.top + triggerPosition.height + offset}px`;
+
+        if ($ctrl.paneAlign === 'center') {
+            $ctrl.css.left = `${triggerPosition.left + (triggerPosition.width / 2)}px`;
+            $ctrl.css.transform = 'translateX(-50%)';
+        } else if ($ctrl.paneAlign === 'right') {
+            $ctrl.css.left = `${triggerPosition.left + triggerPosition.width}px`;
+            $ctrl.css.transform = 'translateX(-100%)';
+        } else {
+            $ctrl.css.left = `${triggerPosition.left}px`;
+        }
+    }
+}
+
+function dropdownToggle($document, $window, $location) {
+    'ngInject';
+    return {
+        scope: {},
+        restrict: 'EA',
+        bindToController: {
+            closeOnClick: '=',
+            paneAlign: '@',
+            toggleOnHover: '=',
+            paneOffset: '=',
+        },
+        transclude: {
+            'toggle': 'toggle',
+            'pane': 'pane',
+        },
+        templateUrl: 'template/dropdownToggle/dropdownToggle.html',
+        controller: DropdownToggleController,
+        controllerAs: '$ctrl',
+    };
+}
+
+
 /*
  * dropdownToggle - Provides dropdown menu functionality
  * @restrict class or attribute
@@ -10,122 +140,6 @@
      </li>
    </ul>
  */
-
-'use strict';
 angular.module('mm.foundation.dropdownToggle', ['mm.foundation.position', 'mm.foundation.mediaQueries'])
-
-  .controller('DropdownToggleController', ['$scope', '$attrs', 'mediaQueries', function($scope, $attrs, mediaQueries) {
-    this.small = function() {
-      return mediaQueries.small() && !mediaQueries.medium();
-    };
-  }])
-
-  .directive('dropdownToggle', ['$document', '$window', '$location', '$position', function($document, $window, $location, $position) {
-    var openElement = null,
-      clickHandler = angular.noop,
-      closeMenu = angular.noop,
-      closeEventListenerRemover;
-    return {
-      restrict: 'CA',
-      controller: 'DropdownToggleController',
-      link: function(scope, element, attrs, controller) {
-        var parent = element.parent(),
-          dropdown = angular.element($document[0].querySelector(attrs.dropdownToggle));
-
-
-        function isPositionOutsideBoundingBox(x, y, boundingBox) {
-          if (x === 0 && y === 0) {
-            return false; // workaround for chrome bug with dropdown click coordinates
-          }
-          return x < boundingBox.left ||
-            x > boundingBox.right ||
-            y < boundingBox.top ||
-            y > boundingBox.bottom;
-        }
-
-        function createBoundingBox(element) {
-          return element.getBoundingClientRect();
-        }
-
-        var onClick = function(event) {
-          dropdown = angular.element($document[0].querySelector(attrs.dropdownToggle));
-          var elementWasOpen = (element === openElement);
-
-          event.preventDefault();
-          event.stopPropagation();
-
-          if (!!openElement) {
-            closeMenu();
-          }
-
-          if (!elementWasOpen && !element.hasClass('disabled') && !element.prop('disabled')) {
-            dropdown.css('display', 'block'); // We display the element so that offsetParent is populated
-            dropdown.addClass('f-open-dropdown');
-
-            var offset = $position.offset(element);
-            var parentOffset = $position.offset(angular.element(dropdown[0].offsetParent));
-            var dropdownWidth = dropdown.prop('offsetWidth');
-            var css = {
-              top: offset.top - parentOffset.top + offset.height + 'px'
-            };
-
-            if (controller.small()) {
-              css.left = Math.max((parentOffset.width - dropdownWidth) / 2, 8) + 'px';
-              css.position = 'absolute';
-              css.width = '95%';
-              css['max-width'] = 'none';
-            } else {
-              var left = Math.round(offset.left - parentOffset.left);
-              var rightThreshold = $window.innerWidth - dropdownWidth - 8;
-              if (left > rightThreshold) {
-                left = rightThreshold;
-                dropdown.removeClass('left').addClass('right');
-              }
-              css.left = left + 'px';
-              css.position = null;
-              css['max-width'] = null;
-            }
-            dropdown.css(css);
-            element.addClass('expanded');
-
-              parent.addClass('hover');
-              openElement = element;
-
-              clickHandler = function(event) {
-                var boundingBox = createBoundingBox(dropdown[0]);
-                if (isPositionOutsideBoundingBox(event.clientX, event.clientY, boundingBox)) {
-                  scope.$emit('dropdown.hasClosed');
-                  closeMenu();
-                }
-              };
-              closeMenu = function() {
-                $document.off('click', clickHandler);
-                dropdown.css('display', 'none');
-                dropdown.removeClass('f-open-dropdown');
-                element.removeClass('expanded');
-                clickHandler = angular.noop;
-                closeEventListenerRemover();
-                openElement = null;
-                if (parent.hasClass('hover')) {
-                  parent.removeClass('hover');
-                }
-              };
-              scope.hideDropDown = clickHandler;
-              $document.on('click', clickHandler);
-              closeEventListenerRemover = scope.$on('dropdown.closeEvent', closeMenu);
-          }
-        };
-
-        if (dropdown) {
-          dropdown.css('display', 'none');
-        }
-
-        scope.$watch('$location.path', function() { closeMenu(); });
-
-        element.on('click', onClick);
-        element.on('$destroy', function() {
-          element.off('click', onClick);
-        });
-      }
-    };
-  }]);
+.directive('dropdownToggle', dropdownToggle)
+.constant('dropdownPaneOffset', 1);
